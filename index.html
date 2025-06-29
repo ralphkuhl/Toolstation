@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leidingdiameter Calculator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Leidingdiameter Calculator</h1>
+
+        <div class="input-section">
+            <label for="medium">Selecteer Medium:</label>
+            <select id="medium">
+                <option value="water">Water</option>
+                <option value="lucht">Lucht</option>
+                <option value="gas">Aardgas</option>
+                <option value="stoom">Stoom</option>
+            </select>
+        </div>
+
+        <div class="input-section">
+            <label>Berekenen op basis van:</label>
+            <input type="radio" id="calcTypeVolume" name="calculationType" value="volume" checked>
+            <label for="calcTypeVolume">Volume/Debiet</label>
+            <input type="radio" id="calcTypeVermogen" name="calculationType" value="vermogen">
+            <label for="calcTypeVermogen">Vermogen</label>
+        </div>
+
+        <div id="volumeInputs" class="input-group">
+            <label for="flowRate">Debiet:</label>
+            <input type="number" id="flowRate" step="any">
+            <select id="flowRateUnit">
+                <option value="m3/h">m³/h</option>
+                <option value="l/s">l/s</option>
+                <option value="l/min">l/min</option>
+                <option value="kg/h" class="steam-only">kg/h (voor stoom)</option>
+            </select>
+        </div>
+
+        <div id="powerInputs" class="input-group" style="display:none;">
+            <label for="power">Vermogen:</label>
+            <input type="number" id="power" step="any">
+            <select id="powerUnit">
+                <option value="kW">kW</option>
+            </select>
+        </div>
+
+        <!-- Specifieke inputs per medium/type -->
+        <div id="waterSpecificInputs" class="input-group specific-inputs" style="display:none;">
+            <label for="deltaT">Temperatuurverschil (ΔT °C):</label>
+            <input type="number" id="deltaT" value="20" step="any">
+        </div>
+
+        <div id="gasSpecificInputs" class="input-group specific-inputs" style="display:none;">
+            <label for="calorificValue">Verbrandingswaarde (MJ/m³):</label>
+            <input type="number" id="calorificValue" value="31.65" step="any"> <!-- Onderwaarde Groningen gas -->
+        </div>
+
+        <div id="steamSpecificInputs" class="input-group specific-inputs" style="display:none;">
+            <label for="steamPressure">Stoomdruk (bar gauge):</label>
+            <input type="number" id="steamPressure" value="5" step="any">
+             <p class="info-text">Let op: Stoom berekeningen zijn vereenvoudigd o.b.v. verzadigde stoom bij de gegeven druk.</p>
+        </div>
+
+        <div class="input-section">
+            <label for="velocity">Aanbevolen Stroomsnelheid (m/s):</label>
+            <input type="number" id="velocity" step="any">
+        </div>
+
+        <button id="calculateButton">Bereken Diameter</button>
+        <button id="printButton">Print Resultaten</button>
+
+        <div id="resultSection" class="result-section" style="display:none;">
+            <h2>Resultaat:</h2>
+            <p>Berekende binnendiameter: <span id="resultDiameter">--</span> mm</p>
+            <p id="flowRateResult" style="display:none;">Effectief debiet: <span id="calculatedFlowRate">--</span> m³/s</p>
+            <p id="massFlowRateResult" style="display:none;">Effectief massadebiet: <span id="calculatedMassFlowRate">--</span> kg/s</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
