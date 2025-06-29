@@ -1,0 +1,250 @@
+/* Global Resets and Base Styles */
+:root {
+    --primary-color: #007bff; /* Blauw als primaire kleur */
+    --secondary-color: #6c757d; /* Grijs voor secundaire elementen */
+    --background-color: #f8f9fa; /* Lichte achtergrond */
+    --text-color: #212529; /* Donkere tekst voor leesbaarheid */
+    --input-bg: #fff;
+    --input-border: #ced4da;
+    --input-focus-border: #80bdff;
+    --button-success-bg: #28a745;
+    --button-success-hover-bg: #218838;
+    --button-warning-bg: #ffc107;
+    --button-warning-hover-bg: #e0a800;
+    --container-bg: #ffffff;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Align to top for longer content */
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 700px; /* Iets breder voor meer ruimte */
+    margin: 30px auto;
+    padding: 30px; /* Meer padding */
+    background-color: var(--container-bg);
+    border-radius: 12px; /* Rondere hoeken */
+    box-shadow: 0 4px 12px var(--shadow-color); /* Subtiele schaduw */
+}
+
+h1 {
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 30px; /* Meer ruimte onder de titel */
+    font-size: 2em;
+}
+
+/* Input Sections and Groups */
+.input-section, .input-group {
+    margin-bottom: 20px; /* Meer ruimte tussen secties */
+}
+
+.input-group label, .input-section label {
+    display: block;
+    margin-bottom: 8px; /* Meer ruimte onder label */
+    font-weight: 600; /* Iets dikker lettertype */
+    color: #495057;
+}
+
+input[type="number"],
+select {
+    width: 100%; /* Volledige breedte binnen de parent */
+    padding: 12px; /* Grotere padding */
+    border: 1px solid var(--input-border);
+    border-radius: 6px; /* Rondere hoeken */
+    box-sizing: border-box;
+    font-size: 1em;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+input[type="number"]:focus,
+select:focus {
+    border-color: var(--input-focus-border);
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Radio buttons styling */
+.input-section input[type="radio"] {
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.input-section label[for^="calcType"] {
+    font-weight: normal;
+    display: inline-flex; /* Align items nicely */
+    align-items: center;
+    margin-right: 20px; /* Meer ruimte tussen radio opties */
+    cursor: pointer;
+}
+
+/* Buttons */
+button {
+    display: inline-block;
+    font-weight: 600;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid transparent;
+    padding: 10px 20px; /* Grotere padding */
+    font-size: 1em;
+    border-radius: 6px; /* Rondere hoeken */
+    transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    margin-right: 10px;
+    margin-top: 10px;
+}
+
+#calculateButton {
+    background-color: var(--button-success-bg);
+    color: white;
+    border-color: var(--button-success-bg);
+}
+
+#calculateButton:hover {
+    background-color: var(--button-success-hover-bg);
+    border-color: var(--button-success-hover-bg);
+}
+
+#printButton {
+    background-color: var(--button-warning-bg);
+    color: #212529; /* Donkere tekst op gele achtergrond */
+    border-color: var(--button-warning-bg);
+}
+
+#printButton:hover {
+    background-color: var(--button-warning-hover-bg);
+    border-color: var(--button-warning-hover-bg);
+}
+
+/* Result Section */
+.result-section {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #eef2f7; /* Lichter blauw-grijs */
+    border: 1px solid #d6dde5;
+    border-radius: 8px;
+}
+
+.result-section h2 {
+    margin-top: 0;
+    color: var(--primary-color);
+    font-size: 1.5em;
+    margin-bottom: 15px;
+}
+
+.result-section p {
+    font-size: 1.1em;
+    margin-bottom: 8px;
+}
+.result-section p span {
+    font-weight: bold;
+    color: var(--button-success-bg);
+}
+
+.info-text {
+    font-size: 0.85em;
+    color: var(--secondary-color);
+    margin-top: 5px;
+    padding-left: 5px;
+    border-left: 3px solid var(--input-border);
+}
+
+/* Initially hide specific input groups and steam unit */
+.specific-inputs, .steam-only {
+    display: none;
+}
+
+
+/* Print specific styles */
+@media print {
+    body {
+        font-family: 'Times New Roman', Times, serif; /* Klassiek lettertype voor print */
+        font-size: 11pt;
+        background-color: #fff !important; /* Forceer witte achtergrond */
+        color: #000 !important; /* Forceer zwarte tekst */
+        margin: 20mm; /* Marges voor print */
+        padding: 0;
+    }
+
+    .container {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 0;
+        border: none;
+        box-shadow: none;
+    }
+
+    h1 {
+        font-size: 16pt;
+        text-align: left;
+        color: #000 !important;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #000;
+        padding-bottom: 5px;
+    }
+
+    .input-section, .input-group, button, .info-text,
+    label[for="medium"], select#medium,
+    input[type="radio"], label[for^="calcType"] {
+        display: none !important; /* Verberg alle UI-elementen die niet in de samenvatting staan */
+    }
+
+    #printSummary {
+        display: block !important; /* Zorg dat de print samenvatting getoond wordt */
+        border: 1px solid #ccc;
+        padding: 15px;
+        margin-bottom: 20px;
+        background-color: #fff !important; /* Witte achtergrond voor de samenvatting */
+    }
+
+    #printSummary p {
+        margin: 5px 0;
+        font-size: 11pt;
+    }
+    #printSummary p strong {
+        font-weight: bold;
+    }
+
+    #resultSection {
+        display: block !important;
+        border: none;
+        background-color: #fff !important;
+        padding: 0;
+        margin-top: 10px;
+    }
+
+    #resultSection h2 {
+        font-size: 13pt;
+        color: #000 !important;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 3px;
+    }
+
+    #resultSection p {
+        font-size: 11pt;
+        color: #000 !important;
+    }
+    #resultSection p span {
+        font-weight: bold;
+        color: #000 !important; /* Zorg dat resultaat ook zwart is in print */
+    }
+
+    /* Verberg de print knop zelf */
+    #printButton {
+        display: none !important;
+    }
+}
