@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vlucht Kalender Nederland - Spanje</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Vluchtaanbiedingen Nederland - Spanje</h1>
+    </header>
+    <main>
+        <div class="controls">
+            <label for="month">Maand:</label>
+            <select id="month">
+                <option value="0">Januari</option>
+                <option value="1">Februari</option>
+                <option value="2">Maart</option>
+                <option value="3">April</option>
+                <option value="4">Mei</option>
+                <option value="5">Juni</option>
+                <option value="6">Juli</option>
+                <option value="7">Augustus</option>
+                <option value="8">September</option>
+                <option value="9">Oktober</option>
+                <option value="10">November</option>
+                <option value="11">December</option>
+            </select>
+            <label for="year">Jaar:</label>
+            <input type="number" id="year" value="2024" min="2023">
+            <button id="show-calendar">Toon Kalender</button>
+        </div>
+        <div id="calendar-container">
+            <!-- Kalender wordt hier dynamisch ingevoegd -->
+        </div>
+        <div id="flight-info">
+            <h2>Geselecteerde Vluchtinformatie</h2>
+            <p id="selected-flight-details">Klik op een datum in de kalender om vlucht details te zien.</p>
+        </div>
+    </main>
+    <footer>
+        <p>Vluchtprijzen zijn indicatief.</p>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>

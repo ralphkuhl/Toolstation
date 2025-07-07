@@ -1,0 +1,141 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+}
+
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 1rem 0;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+}
+
+main {
+    padding: 1rem;
+    max-width: 900px;
+    margin: 2rem auto;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.controls {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.controls label {
+    font-weight: bold;
+}
+
+.controls select,
+.controls input[type="number"],
+.controls button {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.controls button {
+    background-color: #337ab7;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.controls button:hover {
+    background-color: #286090;
+}
+
+#calendar-container {
+    margin-bottom: 1.5rem;
+}
+
+.calendar {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* Ensures equal column widths */
+}
+
+.calendar th, .calendar td {
+    border: 1px solid #ddd;
+    padding: 0.5rem; /* Reduced padding for more compact look */
+    text-align: center;
+    height: 70px; /* Fixed height for cells */
+    vertical-align: top; /* Align content to the top */
+}
+
+.calendar th {
+    background-color: #f9f9f9;
+    font-weight: bold;
+}
+
+.calendar td.empty {
+    background-color: #fdfdfd;
+}
+
+.calendar td.date-cell {
+    cursor: default; /* Default cursor, changes if it has flight */
+    position: relative; /* For positioning price */
+}
+.calendar td.date-cell:hover:not(.empty) {
+    background-color: #e9eff7;
+}
+
+.calendar td.has-flight {
+    cursor: pointer;
+    background-color: #f0f8ff; /* Light blue for days with flights */
+}
+
+.calendar td.has-flight:hover {
+    background-color: #d4e8ff;
+}
+
+.calendar .price {
+    font-size: 0.8em;
+    color: #0056b3; /* Darker blue for price */
+    font-weight: bold;
+    margin-top: 5px; /* Space between date number and price */
+    display: block;
+}
+
+.calendar td.cheapest {
+    background-color: #d4edda; /* Greenish for cheapest */
+    border: 2px solid #28a745; /* Green border */
+}
+
+.calendar td.cheapest .price {
+    color: #155724; /* Darker green for price text */
+    font-weight: bold;
+}
+
+
+#flight-info {
+    padding: 1rem;
+    background-color: #e9f7fd;
+    border: 1px solid #b3e0f2;
+    border-radius: 4px;
+}
+
+#flight-info h2 {
+    margin-top: 0;
+    color: #0056b3;
+}
+
+footer {
+    text-align: center;
+    padding: 1rem;
+    background-color: #333;
+    color: #fff;
+    margin-top: 2rem;
+}
