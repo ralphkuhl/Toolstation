@@ -10,9 +10,12 @@ if _UI_SCRIPT_DIR not in sys.path:
     sys.path.insert(0, _UI_SCRIPT_DIR)
 # --- Einde sys.path aanpassing ---
 
-from fixture_manager import FixtureManager, PatchedFixture # Importeer PatchedFixture ook
+from fixture_manager import FixtureManager, PatchedFixture
 from dmx_controller import DMXController
-from fixture_models import FixtureDefinition # Voor type hints
+from fixture_models import FixtureDefinition
+from scene_manager import SceneManager
+from chaser_manager import ChaserManager
+from midi_controller import MidiController
 
 class App(tk.Tk):
     def __init__(self):
@@ -22,6 +25,9 @@ class App(tk.Tk):
 
         self.fixture_manager = None
         self.dmx_controller = None
+        self.scene_manager = None
+        self.chaser_manager = None
+        self.midi_controller = None
         self._fixture_definition_cache = {} # Cache voor snelle toegang tot definities via listbox index
 
         # Probeer FixtureManager te initialiseren
@@ -39,6 +45,9 @@ class App(tk.Tk):
 
             print(f"UI: Attempting to use fixture directory: {fixture_dir_abs}")
             self.fixture_manager = FixtureManager(fixture_directory=fixture_dir_abs)
+            self.scene_manager = SceneManager()
+            self.chaser_manager = ChaserManager()
+            self.midi_controller = MidiController(self)
             if not self.fixture_manager.get_available_definitions() and os.path.isdir(fixture_dir_abs) :
                  messagebox.showwarning("Fixture Warning", f"No fixture definitions loaded from {fixture_dir_abs}, although directory exists. Check JSON files.")
             elif not os.path.isdir(fixture_dir_abs):
@@ -68,25 +77,48 @@ class App(tk.Tk):
             self.update_patched_fixtures_display()
 
     def _create_widgets(self):
-        top_frame = ttk.Frame(self, padding=10)
-        top_frame.pack(fill=tk.X, side=tk.TOP)
-
-        self.btn_refresh_definitions = ttk.Button(top_frame, text="Refresh Definitions", command=self.refresh_fixture_definitions)
-        self.btn_refresh_definitions.pack(side=tk.LEFT, padx=5)
-        self.btn_blackout = ttk.Button(top_frame, text="BLACKOUT", command=self.emergency_blackout, style="Blackout.TButton")
+        # --- Menu Bar ---
         self.style = ttk.Style(self)
         self.style.configure("Blackout.TButton", foreground="white", background="red", font=('Helvetica', '10', 'bold'))
-        self.btn_blackout.pack(side=tk.RIGHT, padx=5)
+
+        menubar = tk.Menu(self)
+        self.config(menu=menubar)
+
+        file_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="File", menu=file_menu)
+        file_menu.add_command(label="Refresh Fixture Definitions", command=self.refresh_fixture_definitions)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=self.on_closing)
+
+        control_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Control", menu=control_menu)
+        control_menu.add_command(label="BLACKOUT", command=self.emergency_blackout, accelerator="Ctrl+B")
+        self.bind_all("<Control-b>", lambda event: self.emergency_blackout())
+
+        self.scenes_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Scenes", menu=self.scenes_menu)
+        self._create_scenes_menu()
+
+        self.chasers_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Chasers", menu=self.chasers_menu)
+        self._create_chasers_menu()
+
+        self.midi_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="MIDI", menu=self.midi_menu)
+        self._create_midi_menu()
 
 
         main_paned_window = ttk.PanedWindow(self, orient=tk.HORIZONTAL)
         main_paned_window.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        patch_area_frame = ttk.LabelFrame(main_paned_window, text="Patch & Definitions", padding=10)
+        patch_area_frame = self._create_patch_area(main_paned_window)
         main_paned_window.add(patch_area_frame, weight=1)
 
-        controls_master_frame = ttk.LabelFrame(main_paned_window, text="Live Controls", padding=10)
+        controls_master_frame = self._create_live_controls_area(main_paned_window)
         main_paned_window.add(controls_master_frame, weight=3)
+
+    def _create_patch_area(self, parent):
+        patch_area_frame = ttk.LabelFrame(parent, text="Patch & Definitions", padding=10)
 
         # --- Widgets in patch_area_frame ---
         definitions_outer_frame = ttk.Frame(patch_area_frame)
@@ -109,6 +141,10 @@ class App(tk.Tk):
 
         self.btn_add_to_patch = ttk.Button(patch_area_frame, text="Add Selected to Patch", command=self.add_selected_fixture_to_patch)
         self.btn_add_to_patch.pack(pady=5, fill=tk.X)
+        return patch_area_frame
+
+    def _create_live_controls_area(self, parent):
+        controls_master_frame = ttk.LabelFrame(parent, text="Live Controls", padding=10)
 
         # --- Widgets in controls_master_frame (voor gepatchte fixtures) ---
         self.patched_fixtures_canvas = tk.Canvas(controls_master_frame, highlightthickness=0)
@@ -121,6 +157,7 @@ class App(tk.Tk):
         self.patched_fixtures_inner_frame.bind("<Configure>", self._on_inner_frame_configure)
         # Bind mousewheel to the canvas that actually needs scrolling
         self.patched_fixtures_canvas.bind_all("<MouseWheel>", lambda event, canvas=self.patched_fixtures_canvas: self._on_mousewheel_specific_canvas(event, canvas))
+        return controls_master_frame
 
 
     def _on_inner_frame_configure(self, event=None):
@@ -348,11 +385,141 @@ class App(tk.Tk):
             messagebox.showinfo("Blackout", "All DMX channels set to 0.")
 
 
+    def _create_scenes_menu(self):
+        self.scenes_menu.delete(0, tk.END)
+        self.scenes_menu.add_command(label="Save Scene", command=self._save_scene)
+        self.scenes_menu.add_separator()
+
+        if self.scene_manager:
+            scenes = self.scene_manager.get_scenes()
+            if not scenes:
+                self.scenes_menu.add_command(label="No scenes yet", state=tk.DISABLED)
+            else:
+                for scene in sorted(scenes, key=lambda s: s.name):
+                    self.scenes_menu.add_command(label=scene.name, command=lambda s=scene: self._apply_scene(s))
+
+    def _save_scene(self):
+        if not self.fixture_manager or not self.scene_manager:
+            messagebox.showerror("Error", "Fixture or Scene manager not initialized.")
+            return
+
+        scene_name = simpledialog.askstring("Save Scene", "Enter a name for the new scene:", parent=self)
+        if scene_name:
+            try:
+                self.scene_manager.create_scene(scene_name, self.fixture_manager)
+                self._create_scenes_menu() # Refresh the menu
+                messagebox.showinfo("Scene Saved", f"Scene '{scene_name}' was saved successfully.")
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to save scene: {e}")
+
+    def _apply_scene(self, scene):
+        if not self.fixture_manager or not self.scene_manager:
+            messagebox.showerror("Error", "Fixture or Scene manager not initialized.")
+            return
+
+        if messagebox.askyesno("Apply Scene", f"Are you sure you want to apply scene '{scene.name}'?"):
+            try:
+                self.scene_manager.apply_scene(scene, self.fixture_manager)
+                self.update_patched_fixtures_display()
+                self.apply_patch_to_dmx()
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to apply scene: {e}")
+
+    def _create_chasers_menu(self):
+        self.chasers_menu.delete(0, tk.END)
+        self.chasers_menu.add_command(label="Create New Chaser", command=self._create_chaser_window)
+        self.chasers_menu.add_separator()
+
+        if self.chaser_manager:
+            chasers = self.chaser_manager.get_chasers()
+            if not chasers:
+                self.chasers_menu.add_command(label="No chasers defined", state=tk.DISABLED)
+            else:
+                for chaser in chasers:
+                    var = tk.BooleanVar(value=chaser.is_running)
+                    self.chasers_menu.add_checkbutton(
+                        label=chaser.name,
+                        variable=var,
+                        command=lambda c=chaser, v=var: self._toggle_chaser(c, v)
+                    )
+
+    def _create_chaser_window(self):
+        # This would open a new Toplevel window for chaser creation
+        # For simplicity, we'll use a series of dialogs for now
+        if not self.scene_manager or not self.chaser_manager:
+            messagebox.showerror("Error", "Scene or Chaser manager not initialized.")
+            return
+
+        scenes = self.scene_manager.get_scenes()
+        if not scenes:
+            messagebox.showinfo("No Scenes", "Please create some scenes first to build a chaser.")
+            return
+
+        # Let's build a simple dialog to select scenes
+        # A more complex implementation would use a custom Toplevel window
+
+        # This is a placeholder for a more complex UI
+        chaser_name = simpledialog.askstring("Chaser Name", "Enter a name for the new chaser:")
+        if not chaser_name:
+            return
+
+        step_duration = simpledialog.askfloat("Step Duration", "Enter step duration in seconds (e.g., 0.5):", initialvalue=1.0)
+        if step_duration is None:
+            return
+
+        # In a real UI, you'd have a listbox to select multiple scenes.
+        # Here we just add all scenes for simplicity of this example.
+        selected_scenes = scenes
+
+        self.chaser_manager.create_chaser(chaser_name, selected_scenes, step_duration)
+        self._create_chasers_menu()
+
+    def _toggle_chaser(self, chaser, var):
+        if var.get():
+            chaser.start(self.scene_manager, self.fixture_manager, self.dmx_controller)
+        else:
+            chaser.stop()
+        self._create_chasers_menu()
+
+
+    def _create_midi_menu(self):
+        self.midi_menu.delete(0, tk.END)
+
+        if self.midi_controller:
+            ports = self.midi_controller.midi_in.get_ports()
+            if not ports:
+                self.midi_menu.add_command(label="No MIDI devices found", state=tk.DISABLED)
+            else:
+                for port_name in ports:
+                    var = tk.BooleanVar(value=(port_name == self.midi_controller.port))
+                    self.midi_menu.add_checkbutton(
+                        label=port_name,
+                        variable=var,
+                        command=lambda p=port_name: self._select_midi_port(p)
+                    )
+
+        self.midi_menu.add_separator()
+        self.midi_menu.add_command(label="MIDI Mapping...", command=self._open_midi_mapping_window)
+
+    def _select_midi_port(self, port_name):
+        if self.midi_controller:
+            self.midi_controller.close_port()
+            self.midi_controller.midi_in.open_port(self.midi_controller.midi_in.get_ports().index(port_name))
+            self.midi_controller.port = port_name
+            self.midi_controller.midi_in.set_callback(self.midi_controller.on_midi_message)
+            self._create_midi_menu()
+
+    def _open_midi_mapping_window(self):
+        messagebox.showinfo("MIDI Mapping", "This feature is not yet implemented.")
+
+
     def on_closing(self):
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
             if self.dmx_controller:
                 print("UI: Closing DMX Controller...")
                 self.dmx_controller.close()
+            if self.midi_controller:
+                self.midi_controller.close_port()
             self.destroy()
 
 if __name__ == '__main__':

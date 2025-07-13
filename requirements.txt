@@ -1,0 +1,2 @@
+pylibftdi
+python-rtmidi
